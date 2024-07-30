@@ -7,7 +7,7 @@ app.secret_key = 'supersecretkey'  # Kunci rahasia untuk sesi
 def home():
     if 'name' in session:
         return render_template('index.html', name=session['name'])
-    return render_template('name.html')
+    return render_template('index.html', name=None)
 
 @app.route('/set_name', methods=['POST'])
 def set_name():
