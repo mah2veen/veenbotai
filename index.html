@@ -1,54 +1,137 @@
-from flask import Flask, render_template, request, session
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Bot</title>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # Kunci rahasia untuk sesi
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50; /* Warna gelap */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
 
-@app.route('/')
-def home():
-    if 'name' in session:
-        return render_template('index.html', name=session['name'])
-    return render_template('name.html')
+        .container {
+            background-color: #34495e; /* Warna gelap */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
 
-@app.route('/set_name', methods=['POST'])
-def set_name():
-    session['name'] = request.form['name']
-    return render_template('index.html', name=session['name'])
+        h1 {
+            color: #ecf0f1; /* Warna terang */
+        }
 
-@app.route('/chat', methods=['POST'])
-def chat():
-    user_message = request.form['message']
-    name = session.get('name', 'User')
-    if 'kabar' in user_message.lower():
-        response = f"Saya baik, bagaimana dengan Anda, {name}? Apakah kabar Anda baik atau tidak?"
-        options = ["Baik", "Tidak Baik"]
-    elif 'hari ini' in user_message.lower():
-        response = f"Hari ini sangat menyenangkan! Bagaimana dengan hari Anda, {name}?"
-        options = []
-    elif 'umur' in user_message.lower():
-        response = f"Pembuat saya belum memberikan saya umur, tapi menurut saya anda lebih tua dari saya, {name}! Bagaimana dengan umur Anda?"
-        options = []
-    elif 'aul' in user_message.lower():
-        response = f"Pembuat saya pernah mabar dengan kakak itu dan dia sangat menyenangkan! Bagaimana dengan Anda, {name}, apakah mengenal aul juga?"
-        options = []
-    elif 'hero' in user_message.lower():
-        response = f"Menurut saya kamu harus menggunakan hero harith, {name}, apakah kamu bisa menggunakan harith?"
-        options = []
-    else:
-        response = f"Hallo, {name}, ini chat bot dibuat oleh Mahveen. Ada yang bisa saya bantu?"
-        options = []
+        .chat-window {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
 
-    return render_template('index.html', user_message=user_message, response=response, options=options, name=name)
+        .chat-bubble {
+            padding: 10px;
+            border-radius: 10px;
+            margin: 5px 0;
+            display: inline-block;
+            max-width: 80%;
+            animation: fadeIn 0.5s ease-in-out;
+        }
 
-@app.route('/response', methods=['POST'])
-def response():
-    user_choice = request.form['choice']
-    name = session.get('name', 'User')
-    if user_choice == "Baik":
-        response = f"Senang mendengar kabar Anda baik, {name}! 😊"
-    else:
-        response = f"Jangan khawatir, {name}, semuanya akan baik-baik saja. Tetap semangat! 💪"
+        .chat-bubble.user {
+            background-color: #3498db; /* Warna biru */
+            color: #fff; /* Warna teks */
+            align-self: flex-end;
+        }
 
-    return render_template('index.html', user_message=user_choice, response=response, options=[], name=name)
+        .chat-bubble.bot {
+            background-color: #e74c3c; /* Warna merah */
+            color: #fff; /* Warna teks */
+            align-self: flex-start;
+        }
 
-if __name__ == '__main__':
-    app.run(debug=True)
+        form {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #3498db; /* Warna biru */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2980b9; /* Warna biru lebih gelap */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VeenChatAI</h1>
+        <div class="chat-window" id="chat-window">
+            {% if user_message %}
+                <div class="chat-bubble user">{{ user_message }}</div>
+                <div class="chat-bubble bot" id="bot-response">{{ response }}</div>
+            {% endif %}
+            {% if options %}
+                <form method="POST" action="/response">
+                    {% for option in options %}
+                        <button type="submit" name="choice" value="{{ option }}">{{ option }}</button>
+                    {% endfor %}
+                </form>
+            {% endif %}
+        </div>
+        <form method="POST" action="/chat">
+            <input type="text" id="message" name="message" placeholder="Tulis pesan Anda..." required>
+            <button type="submit">Kirim</button>
+        </form>
+    </div>
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        const botResponse = document.getElementById('bot-response');
+        const responseText = "{{ response }}";
+        let index = 0;
+
+        function typeWriter() {
+            if (index < responseText.length) {
+                botResponse.innerHTML += responseText.charAt(index);
+                index++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+
+        if (botResponse) {
+            typeWriter();
+        }
+    </script>
+</body>
+</html>
