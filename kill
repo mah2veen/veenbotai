@@ -1,0 +1,34 @@
+	-- Create a new ScreenGui to hold the GUI elements
+local gui = Instance.new("ScreenGui")
+gui.Name = "KickGUI"
+gui.Parent = game.Players.LocalPlayer.PlayerGui
+ 
+-- Create a TextBox for entering the player's name
+local textBox = Instance.new("TextBox")
+textBox.Name = "PlayerName"
+textBox.Size = UDim2.new(0, 200, 0, 30)
+textBox.Position = UDim2.new(0.5, -100, 0.5, -15)
+textBox.Parent = gui
+ 
+-- Create a TextButton for kicking the player
+local kickButton = Instance.new("TextButton")
+kickButton.Name = "KickButton"
+kickButton.Size = UDim2.new(0, 100, 0, 30)
+kickButton.Position = UDim2.new(0.5, 50, 0.5, 15)
+kickButton.Text = "Kick"
+kickButton.Parent = gui
+ 
+-- Function to kick a player when the KickButton is clicked
+local function kickPlayer()
+    local playerName = textBox.Text
+    local player = game.Players:FindFirstChild(playerName)
+    
+    if player then
+        player:Kick("You have been kicked from the game.")
+    else
+        print("Player not found.")
+    end
+end
+ 
+-- Connect the kickPlayer function to the KickButton's MouseButton1Click event
+kickButton.MouseButton1Click:Connect(kickPlayer)
